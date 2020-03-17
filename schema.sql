@@ -13,7 +13,7 @@ CREATE TABLE role (
     id INT AUTO_INCREMENT NOT NULL,
     title VARCHAR(30) NOT NULL,
     salary INT(10) NOT NULL,
-    department_id INT NOT NULL,
+    department_id INT NOT NULL REFERENCES department(id),
     PRIMARY KEY(id)
 );
 
@@ -21,11 +21,10 @@ CREATE TABLE employee (
     id INT AUTO_INCREMENT NOT NULL,
     first_name VARCHAR(30) NOT NULL,
     last_name VARCHAR(30) NOT NULL,
-    role_id INT NOT NULL,
-    manager_id INT,
+    role_id INT NOT NULL REFERENCES role(id),
+    manager_id INT REFERENCES employee(id),
     PRIMARY KEY(id)
 );
-
 
 INSERT INTO department
 VALUES (1, "Engineering"),
