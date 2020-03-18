@@ -2,6 +2,7 @@ const inquirer = require('inquirer');
 const mysql = require('mysql');
 const cTable = require('console.table');
 
+const mainQuery = 'SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, role.salary, CONCAT(m.first_name, " ", m.last_name) AS manager FROM employee e INNER JOIN role ON e.role_id = role.id  INNER JOIN department ON role.department_id = department.id LEFT JOIN employee m ON m.id = e.manager_id';
 
 const TEXT_VIEW_EMPLOYEES = "View all employees";
 const TEXT_ADD_DEPARTMENT = "Add a department";
@@ -10,6 +11,7 @@ const TEXT_ADD_EMPLOYEE = "Add an employee";
 const TEXT_VIEW_DEPARTMENTS = "View all departments";
 const TEXT_VIEW_ROLES = "View all roles";
 const TEXT_UPDATE_EMPLOYEE_ROLE = "Update employee role";
+
 
 // BONUS
 const TEXT_UPDATE_EMPLOYEE_MANAGER = "Update employee manager";
@@ -92,8 +94,8 @@ function queryUser() {
 
 
 function viewAllEmployees() {
-    const query = 'SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, role.salary, CONCAT(m.first_name, " ", m.last_name) AS manager FROM employee e INNER JOIN role ON e.role_id = role.id  INNER JOIN department ON role.department_id = department.id LEFT JOIN employee m ON m.id = e.manager_id';
-    connection.query(query, function (err, res) {
+
+    connection.query(mainQuery, function (err, res) {
         if (err) throw err;
         console.log("\n")
         console.table(res);
@@ -203,6 +205,7 @@ function addEmployee() {
             }).then(function (answer) {
                 const role = answer.role;
                 const roleId = role.match(/(\d+)/);
+                console.log(roleId);
                 connection.query("SELECT * FROM employee", function (err, results) {
                     if (err) throw err;
                     inquirer.prompt({
@@ -224,7 +227,7 @@ function addEmployee() {
                         connection.query(query, [firstName, lastName, roleId[0], managerId[0]], function(err, res) {
                             if (err) throw err;
                         });
-                        connection.query('SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, role.salary, CONCAT(m.first_name, " ", m.last_name) AS manager FROM employee e INNER JOIN role ON e.role_id = role.id  INNER JOIN department ON role.department_id = department.id LEFT JOIN employee m ON m.id = e.manager_id', function(err, res) {
+                        connection.query(mainQuery, function(err, res) {
                             if (err) throw err;
                             console.log('\n');
                             console.table(res);
@@ -271,6 +274,9 @@ function updateEmployeeRole() {
                 return choicesArray;
             }
         }).then(function (answers) {
+            const employee = answers.employee;
+            const employeeId = employee.match(/(\d+)/);
+            console.log(employeeId)
             connection.query("SELECT * FROM role", function (err, result) {
                 if (err) throw err;
                 inquirer.prompt({
@@ -284,19 +290,40 @@ function updateEmployeeRole() {
                         }
                         return choicesArray;
                     }
-                }).then(function (answer) {
-                    const employeeId = parseInt(answers.employee.charAt(0));
-                    const roleId = parseInt(answer.role.charAt(0));
-                    const query = "UPDATE employee SET role_id = ? WHERE id = ?";
-                    connection.query(query, [roleId, employeeId], function (err, res) {
+                }).then(function (answers) {
+                    const role = answers.role;
+                    const roleId = role.match(/(\d+)/);
+                    console.log(roleId)
+                    connection.query("SELECT * FROM employee", function(err, res) {
                         if (err) throw err;
-                    });
-                    connection.query("SELECT * FROM employee", function (err, res) {
-                        if (err) throw err;
-                        console.log('\n');
-                        console.table(res);
-                    });
-                    queryUser();
+                        inquirer.prompt({
+    
+                            name: 'manager',
+                            type: 'rawlist',
+                            message: "Who is the manager of this employee?",
+                            choices: function () {
+                                choicesArray = [];
+                                for (var i = 0; i < results.length; i++) {
+                                    choicesArray.push(results[i].id + ". " + results[i].first_name + " " + results[i].last_name);
+                                }
+                                return choicesArray;
+                            }
+                        }).then(function(answers) {
+                            const manager = answers.manager;
+                            const managerId = manager.match(/(\d+)/);
+                            console.log(managerId);
+                            const query = "UPDATE employee SET role_id = ?, manager_id = ? WHERE id = ?";
+                            connection.query(query, [roleId[0], managerId[0], employeeId[0]], function (err, res) {
+                                if (err) throw err;
+                            });
+                            connection.query(mainQuery, function (err, res) {
+                                if (err) throw err;
+                                console.log('\n');
+                                console.table(res);
+                            });
+                            queryUser();
+                        });
+                    })
                 });
             });
         });
