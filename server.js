@@ -171,10 +171,6 @@ function addRole() {
     });
 };
 
-
-
-
-
 function addEmployee() {
     inquirer.prompt([
         {
@@ -232,48 +228,27 @@ function addEmployee() {
                             if (err) throw err;
                             console.log('\n');
                             console.table(res);
-                        })
-
-                    })
-                })
-            })
-        })
-    })
-}
-
-
-
-// function addEmployee() {
-//     connection.query("SELECT ")
-//     inquirer.prompt([
-
-
-
-//     ]).then(function (answer) {
-//         const { firstName, lastName, roleId, managerId } = answer;
-
-//         connection.query(query, [firstName, lastName, roleId, managerId], function (err, res) {
-//             if (err) throw err;
-//         });
-//         connection.query("SELECT * FROM employee", function (err, res) {
-//             if (err) throw err;
-//             console.log("\n");
-//             console.table(res);
-//         });
-//         queryUser();
-//     });
-// };
+                        });
+                        queryUser();
+                    });
+                });
+            });
+        });
+    });
+};
 
 function viewDepartments() {
     connection.query("SELECT * FROM department", function (err, res) {
         if (err) throw err;
+        console.log('\n');
         console.table(res);
     });
     queryUser();
 };
 
 function viewRoles() {
-    connection.query("SELECT * FROM role", function (err, res) {
+    const query = "SELECT role.id, title, salary, department.name AS department FROM role INNER JOIN department ON role.department_id = department.id";
+    connection.query(query, function (err, res) {
         if (err) throw err;
         console.log("\n");
         console.table(res);
