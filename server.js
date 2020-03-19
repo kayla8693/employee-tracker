@@ -15,6 +15,8 @@ const TEXT_VIEW_EMPLOYEES_BY_ROLE = "View employees by role";
 const TEXT_UPDATE_EMPLOYEE_MANAGER = "Update employee manager";
 const TEXT_VIEW_EMPLOYEE_BY_MANAGER = "View employees by manager";
 const TEXT_DELETE_DEPARTMENT = "Delete a department";
+const TEXT_DELETE_ROLE = "Delete a role";
+
 
 
 // BONUS
@@ -22,7 +24,6 @@ const TEXT_DELETE_DEPARTMENT = "Delete a department";
 
 
 
-const TEXT_DELETE_ROLE = "Delete a role";
 const TEXT_DELETE_EMPLOYEE = "Delete an employee";
 const TEXT_VIEW_DEPARTMENT_BUDGET = "View department budget";
 const EXIT = "Exit";
@@ -61,6 +62,7 @@ function queryUser() {
             TEXT_VIEW_EMPLOYEE_BY_MANAGER,
             TEXT_DELETE_DEPARTMENT,
             TEXT_DELETE_ROLE,
+            TEXT_DELETE_EMPLOYEE,
             EXIT
         ]
     }).then(function (answer) {
@@ -101,6 +103,9 @@ function queryUser() {
                         case TEXT_DELETE_ROLE:
                             deleteRole();
                             break;
+                            case TEXT_DELETE_EMPLOYEE:
+                                deleteEmployee();
+                                break;
             case EXIT:
                 console.log("Goodbye");
                 connection.end();
@@ -502,6 +507,37 @@ function deleteRole() {
                 if(err) throw err;
             });
             connection.query("SELECT role.id, title, salary, department.name AS department FROM role INNER JOIN department ON role.department_id = department.id", function(err, res) {
+                if(err) throw err;
+                console.log('\n');
+                console.table(res);
+            });
+            queryUser();
+        });
+    });
+};
+
+function deleteEmployee() {
+    connection.query("SELECT * FROM employee", function(err, results) {
+        if(err) throw err;
+        inquirer.prompt({
+            name: 'employee',
+            type: 'rawlist',
+            message: 'What employee would you like to delete?',
+            choices: function() {
+                choicesArray = [];
+                for (var i = 0; i < results.length; i++) {
+                    choicesArray.push(results[i].id + ". " + results[i].first_name + " " + results[i].last_name);
+                }
+                return choicesArray;
+            }
+        }).then(function(answer) {
+            const employee = answer.employee;
+            const employeeId = employee.match(/(\d+)/);
+            const query = "DELETE FROM employee WHERE id = ?";
+            connection.query(query, employeeId, function(err, res) {
+                if(err) throw err;
+            });
+            connection.query(mainQuery, function(err, res) {
                 if(err) throw err;
                 console.log('\n');
                 console.table(res);
