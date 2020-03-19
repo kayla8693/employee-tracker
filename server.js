@@ -14,8 +14,7 @@ const TEXT_UPDATE_EMPLOYEE_ROLE = "Update employee role";
 const TEXT_VIEW_EMPLOYEES_BY_ROLE = "View employees by role";
 const TEXT_UPDATE_EMPLOYEE_MANAGER = "Update employee manager";
 const TEXT_VIEW_EMPLOYEE_BY_MANAGER = "View employees by manager";
-
-
+const TEXT_DELETE_DEPARTMENT = "Delete a department";
 
 
 // BONUS
@@ -23,7 +22,6 @@ const TEXT_VIEW_EMPLOYEE_BY_MANAGER = "View employees by manager";
 
 
 
-const TEXT_DELETE_DEPARTMENT = "Delete a department";
 const TEXT_DELETE_ROLE = "Delete a role";
 const TEXT_DELETE_EMPLOYEE = "Delete an employee";
 const TEXT_VIEW_DEPARTMENT_BUDGET = "View department budget";
@@ -62,6 +60,7 @@ function queryUser() {
             TEXT_UPDATE_EMPLOYEE_MANAGER,
             TEXT_VIEW_EMPLOYEE_BY_MANAGER,
             TEXT_DELETE_DEPARTMENT,
+            TEXT_DELETE_ROLE,
             EXIT
         ]
     }).then(function (answer) {
@@ -99,6 +98,9 @@ function queryUser() {
                     case TEXT_DELETE_DEPARTMENT:
                         deleteDepartment();
                         break;
+                        case TEXT_DELETE_ROLE:
+                            deleteRole();
+                            break;
             case EXIT:
                 console.log("Goodbye");
                 connection.end();
@@ -220,7 +222,6 @@ function addEmployee() {
             }).then(function (answer) {
                 const role = answer.role;
                 const roleId = role.match(/(\d+)/);
-                console.log(roleId);
                 connection.query("SELECT * FROM employee", function (err, results) {
                     if (err) throw err;
                     inquirer.prompt({
@@ -474,6 +475,38 @@ function deleteDepartment() {
                 console.log('\n');
                 console.table(res);
             });
+            queryUser();
         });
     });
 };
+
+function deleteRole() {
+    connection.query("SELECT * FROM role", function(err, results) {
+        if(err) throw err;
+        inquirer.prompt({
+            name: 'role',
+            type: 'rawlist',
+            message: 'What role would you like to delete?',
+            choices: function() {
+                choicesArray = [];
+                for (var i = 0; i < results.length; i++) {
+                    choicesArray.push(results[i].id + ". " + results[i].title);
+                }
+                return choicesArray;
+            }
+        }).then(function(answer) {
+            const role = answer.role;
+            const roleId = role.match(/(\d+)/);
+            const query = "DELETE FROM role WHERE id = ?";
+            connection.query(query, roleId, function(err,res) {
+                if(err) throw err;
+            });
+            connection.query("SELECT role.id, title, salary, department.name AS department FROM role INNER JOIN department ON role.department_id = department.id", function(err, res) {
+                if(err) throw err;
+                console.log('\n');
+                console.table(res);
+            });
+            queryUser();
+        })
+    })
+}
