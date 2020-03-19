@@ -16,6 +16,8 @@ const TEXT_UPDATE_EMPLOYEE_MANAGER = "Update employee manager";
 const TEXT_VIEW_EMPLOYEE_BY_MANAGER = "View employees by manager";
 const TEXT_DELETE_DEPARTMENT = "Delete a department";
 const TEXT_DELETE_ROLE = "Delete a role";
+const TEXT_DELETE_EMPLOYEE = "Delete an employee";
+
 
 
 
@@ -24,8 +26,7 @@ const TEXT_DELETE_ROLE = "Delete a role";
 
 
 
-const TEXT_DELETE_EMPLOYEE = "Delete an employee";
-const TEXT_VIEW_DEPARTMENT_BUDGET = "View department budget";
+const TEXT_VIEW_DEPARTMENT_BUDGET = "View all department budgets";
 const EXIT = "Exit";
 
 
@@ -63,6 +64,7 @@ function queryUser() {
             TEXT_DELETE_DEPARTMENT,
             TEXT_DELETE_ROLE,
             TEXT_DELETE_EMPLOYEE,
+            TEXT_VIEW_DEPARTMENT_BUDGET,
             EXIT
         ]
     }).then(function (answer) {
@@ -94,18 +96,21 @@ function queryUser() {
             case TEXT_UPDATE_EMPLOYEE_MANAGER:
                 updateManager();
                 break;
-                case TEXT_VIEW_EMPLOYEE_BY_MANAGER:
-                    viewByManager();
-                    break;
-                    case TEXT_DELETE_DEPARTMENT:
-                        deleteDepartment();
-                        break;
-                        case TEXT_DELETE_ROLE:
-                            deleteRole();
-                            break;
-                            case TEXT_DELETE_EMPLOYEE:
-                                deleteEmployee();
-                                break;
+            case TEXT_VIEW_EMPLOYEE_BY_MANAGER:
+                viewByManager();
+                break;
+            case TEXT_DELETE_DEPARTMENT:
+                deleteDepartment();
+                break;
+            case TEXT_DELETE_ROLE:
+                deleteRole();
+                break;
+            case TEXT_DELETE_EMPLOYEE:
+                deleteEmployee();
+                break;
+            case TEXT_VIEW_DEPARTMENT_BUDGET:
+                viewBudgets();
+                break;
             case EXIT:
                 console.log("Goodbye");
                 connection.end();
@@ -409,7 +414,6 @@ function updateManager() {
                 }).then(function (answers) {
                     const manager = answers.manager;
                     const managerId = manager.match(/(\d+)/);
-                    console.log(managerId);
                     const query = "UPDATE employee SET manager_id = ? WHERE id = ?";
                     connection.query(query, [managerId[0], employeeId[0]], function (err, res) {
                         if (err) throw err;
@@ -427,24 +431,24 @@ function updateManager() {
 };
 
 function viewByManager() {
-    connection.query("SELECT * FROM employee", function(err, results) {
+    connection.query("SELECT * FROM employee", function (err, results) {
         if (err) throw err;
         inquirer.prompt({
             name: 'manager',
             type: 'rawlist',
             message: "Which manager's employees would you like to see?",
-            choices: function() {
+            choices: function () {
                 choicesArray = [];
                 for (var i = 0; i < results.length; i++) {
                     choicesArray.push(results[i].id + ". " + results[i].first_name + " " + results[i].last_name);
                 }
                 return choicesArray;
             }
-        }).then(function(answer) {
+        }).then(function (answer) {
             const manager = answer.manager;
             const managerId = manager.match(/(\d+)/);
             const query = 'SELECT e.id, e.first_name, e.last_name, role.title, CONCAT(m.first_name, " ", m.last_name) AS manager FROM employee e INNER JOIN role ON e.role_id = role.id INNER JOIN department ON role.department_id = department.id LEFT JOIN employee m ON m.id = e.manager_id WHERE m.id = ?';
-            connection.query(query, managerId, function(err, res) {
+            connection.query(query, managerId[0], function (err, res) {
                 if (err) throw err;
                 console.log('\n');
                 console.table(res);
@@ -455,27 +459,27 @@ function viewByManager() {
 };
 
 function deleteDepartment() {
-    connection.query("SELECT * FROM department", function(err, results) {
-        if(err) throw err;
+    connection.query("SELECT * FROM department", function (err, results) {
+        if (err) throw err;
         inquirer.prompt({
             name: 'department',
             type: 'rawlist',
             message: "What department would you like to delete?",
-            choices: function() {
+            choices: function () {
                 choicesArray = [];
                 for (var i = 0; i < results.length; i++) {
                     choicesArray.push(results[i].id + '. ' + results[i].name);
                 }
                 return choicesArray;
             }
-        }).then(function(answer) {
+        }).then(function (answer) {
             const department = answer.department;
             const deptId = department.match(/(\d+)/);
             const query = "DELETE FROM department WHERE id = ?";
-            connection.query(query, deptId, function(err, res) {
+            connection.query(query, deptId[0], function (err, res) {
                 if (err) throw err;
             });
-            connection.query("SELECT * FROM department", function(err, res) {
+            connection.query("SELECT * FROM department", function (err, res) {
                 if (err) throw err;
                 console.log('\n');
                 console.table(res);
@@ -486,28 +490,28 @@ function deleteDepartment() {
 };
 
 function deleteRole() {
-    connection.query("SELECT * FROM role", function(err, results) {
-        if(err) throw err;
+    connection.query("SELECT * FROM role", function (err, results) {
+        if (err) throw err;
         inquirer.prompt({
             name: 'role',
             type: 'rawlist',
             message: 'What role would you like to delete?',
-            choices: function() {
+            choices: function () {
                 choicesArray = [];
                 for (var i = 0; i < results.length; i++) {
                     choicesArray.push(results[i].id + ". " + results[i].title);
                 }
                 return choicesArray;
             }
-        }).then(function(answer) {
+        }).then(function (answer) {
             const role = answer.role;
             const roleId = role.match(/(\d+)/);
             const query = "DELETE FROM role WHERE id = ?";
-            connection.query(query, roleId, function(err,res) {
-                if(err) throw err;
+            connection.query(query, roleId[0], function (err, res) {
+                if (err) throw err;
             });
-            connection.query("SELECT role.id, title, salary, department.name AS department FROM role INNER JOIN department ON role.department_id = department.id", function(err, res) {
-                if(err) throw err;
+            connection.query("SELECT role.id, title, salary, department.name AS department FROM role INNER JOIN department ON role.department_id = department.id", function (err, res) {
+                if (err) throw err;
                 console.log('\n');
                 console.table(res);
             });
@@ -517,32 +521,42 @@ function deleteRole() {
 };
 
 function deleteEmployee() {
-    connection.query("SELECT * FROM employee", function(err, results) {
-        if(err) throw err;
+    connection.query("SELECT * FROM employee", function (err, results) {
+        if (err) throw err;
         inquirer.prompt({
             name: 'employee',
             type: 'rawlist',
             message: 'What employee would you like to delete?',
-            choices: function() {
+            choices: function () {
                 choicesArray = [];
                 for (var i = 0; i < results.length; i++) {
                     choicesArray.push(results[i].id + ". " + results[i].first_name + " " + results[i].last_name);
                 }
                 return choicesArray;
             }
-        }).then(function(answer) {
+        }).then(function (answer) {
             const employee = answer.employee;
             const employeeId = employee.match(/(\d+)/);
             const query = "DELETE FROM employee WHERE id = ?";
-            connection.query(query, employeeId, function(err, res) {
-                if(err) throw err;
+            connection.query(query, employeeId[0], function (err, res) {
+                if (err) throw err;
             });
-            connection.query(mainQuery, function(err, res) {
-                if(err) throw err;
+            connection.query(mainQuery, function (err, res) {
+                if (err) throw err;
                 console.log('\n');
                 console.table(res);
             });
             queryUser();
-        })
-    })
-}
+        });
+    });
+};
+
+function viewBudgets() {
+    const query = "SELECT department.id, name, SUM(role.salary) total_dept_budget FROM department INNER JOIN role ON department.id = role.department_id INNER JOIN employee ON role.id = employee.role_id GROUP BY department.id";
+    connection.query(query, function(err, res) {
+        if(err) throw err;
+        console.log('\n');
+        console.table(res);
+    });
+    queryUser();
+};
