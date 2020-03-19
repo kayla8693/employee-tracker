@@ -1,4 +1,4 @@
-# Employee Tracker
+# Employee Management System
 
 ## Description
 This application is a **C**ontent **M**anagement **S**ystem which allows a user to view, add, update, and delete employee information. The application uses an Node.js, Inquirer, and MySql. This application makes it easy for users who are non-developers to view and interact with employee information which is stored in the database. Through the application, the user is able to:
