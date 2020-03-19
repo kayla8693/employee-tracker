@@ -11,13 +11,14 @@ const TEXT_ADD_EMPLOYEE = "Add an employee";
 const TEXT_VIEW_DEPARTMENTS = "View all departments";
 const TEXT_VIEW_ROLES = "View all roles";
 const TEXT_UPDATE_EMPLOYEE_ROLE = "Update employee role";
+const TEXT_VIEW_EMPLOYEES_BY_ROLE = "View employees by role"
+
 
 
 // BONUS
 const TEXT_UPDATE_EMPLOYEE_MANAGER = "Update employee manager";
 const TEXT_VIEW_EMPLOYEE_BY_MANAGER = "View employees by manager";
 
-const TEXT_VIEW_EMPLOYEES_BY_ROLE = "View employees by role"
 
 
 const TEXT_DELETE_DEPARTMENT = "Delete department";
@@ -56,6 +57,8 @@ function queryUser() {
             TEXT_VIEW_ROLES,
             TEXT_UPDATE_EMPLOYEE_ROLE,
             TEXT_VIEW_EMPLOYEES_BY_ROLE,
+            TEXT_UPDATE_EMPLOYEE_MANAGER,
+            TEXT_VIEW_EMPLOYEE_BY_MANAGER,
             EXIT
         ]
     }).then(function (answer) {
@@ -84,6 +87,12 @@ function queryUser() {
             case TEXT_VIEW_EMPLOYEES_BY_ROLE:
                 viewByRole();
                 break;
+            case TEXT_UPDATE_EMPLOYEE_MANAGER:
+                updateManager();
+                break;
+                case TEXT_VIEW_EMPLOYEE_BY_MANAGER:
+                    viewByManager();
+                    break;
             case EXIT:
                 console.log("Goodbye");
                 connection.end();
@@ -224,10 +233,10 @@ function addEmployee() {
                         const manager = answer.manager;
                         const managerId = manager.match(/(\d+)/);
                         const query = "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
-                        connection.query(query, [firstName, lastName, roleId[0], managerId[0]], function(err, res) {
+                        connection.query(query, [firstName, lastName, roleId[0], managerId[0]], function (err, res) {
                             if (err) throw err;
                         });
-                        connection.query(mainQuery, function(err, res) {
+                        connection.query(mainQuery, function (err, res) {
                             if (err) throw err;
                             console.log('\n');
                             console.table(res);
@@ -276,7 +285,6 @@ function updateEmployeeRole() {
         }).then(function (answers) {
             const employee = answers.employee;
             const employeeId = employee.match(/(\d+)/);
-            console.log(employeeId)
             connection.query("SELECT * FROM role", function (err, result) {
                 if (err) throw err;
                 inquirer.prompt({
@@ -293,11 +301,10 @@ function updateEmployeeRole() {
                 }).then(function (answers) {
                     const role = answers.role;
                     const roleId = role.match(/(\d+)/);
-                    console.log(roleId)
-                    connection.query("SELECT * FROM employee", function(err, res) {
+                    connection.query("SELECT * FROM employee", function (err, res) {
                         if (err) throw err;
                         inquirer.prompt({
-    
+
                             name: 'manager',
                             type: 'rawlist',
                             message: "Who is the manager of this employee?",
@@ -308,7 +315,7 @@ function updateEmployeeRole() {
                                 }
                                 return choicesArray;
                             }
-                        }).then(function(answers) {
+                        }).then(function (answers) {
                             const manager = answers.manager;
                             const managerId = manager.match(/(\d+)/);
                             console.log(managerId);
@@ -330,27 +337,6 @@ function updateEmployeeRole() {
     });
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function viewByRole() {
     connection.query("SELECT * FROM role", function (err, results) {
         if (err) throw err;
@@ -370,9 +356,88 @@ function viewByRole() {
             const query = "SELECT employee.id, first_name, last_name FROM employee INNER JOIN role ON employee.role_id = role.id WHERE role.title = ?";
             connection.query(query, answer.role, function (err, res) {
                 if (err) throw err;
+                console.log('\n');
                 console.table(res);
             });
             queryUser();
         });
     });
 };
+
+function updateManager() {
+    connection.query("SELECT * FROM employee", function (err, results) {
+        if (err) throw err;
+        inquirer.prompt({
+            name: "employee",
+            type: "rawlist",
+            message: "Choose the employee you would like to update:",
+            choices: function () {
+                choicesArray = [];
+                for (var i = 0; i < results.length; i++) {
+                    choicesArray.push(results[i].id + ". " + results[i].first_name + " " + results[i].last_name);
+                }
+                return choicesArray;
+            }
+        }).then(function (answers) {
+            const employee = answers.employee;
+            const employeeId = employee.match(/(\d+)/);
+            connection.query("SELECT * FROM employee", function (err, res) {
+                if (err) throw err;
+                inquirer.prompt({
+                    name: 'manager',
+                    type: 'rawlist',
+                    message: "Who is the new manager of this employee?",
+                    choices: function () {
+                        choicesArray = [];
+                        for (var i = 0; i < results.length; i++) {
+                            choicesArray.push(results[i].id + ". " + results[i].first_name + " " + results[i].last_name);
+                        }
+                        return choicesArray;
+                    }
+                }).then(function (answers) {
+                    const manager = answers.manager;
+                    const managerId = manager.match(/(\d+)/);
+                    console.log(managerId);
+                    const query = "UPDATE employee SET manager_id = ? WHERE id = ?";
+                    connection.query(query, [managerId[0], employeeId[0]], function (err, res) {
+                        if (err) throw err;
+                    });
+                    connection.query(mainQuery, function (err, res) {
+                        if (err) throw err;
+                        console.log('\n');
+                        console.table(res);
+                    });
+                    queryUser();
+                });
+            })
+        });
+    });
+};
+
+function viewByManager() {
+    connection.query("SELECT * FROM employee", function(err, results) {
+        if (err) throw err;
+        inquirer.prompt({
+            name: 'manager',
+            type: 'rawlist',
+            message: "Which manager's employees would you like to see?",
+            choices: function() {
+                choicesArray = [];
+                for (var i = 0; i < results.length; i++) {
+                    choicesArray.push(results[i].id + ". " + results[i].first_name + " " + results[i].last_name);
+                }
+                return choicesArray;
+            }
+        }).then(function(answer) {
+            const manager = answer.manager;
+            const managerId = manager.match(/(\d+)/);
+            const query = 'SELECT e.id, e.first_name, e.last_name, role.title, CONCAT(m.first_name, " ", m.last_name) AS manager FROM employee e INNER JOIN role ON e.role_id = role.id INNER JOIN department ON role.department_id = department.id LEFT JOIN employee m ON m.id = e.manager_id WHERE m.id = ?';
+            connection.query(query, managerId, function(err, res) {
+                if (err) throw err;
+                console.log('\n');
+                console.table(res);
+            });
+            queryUser();
+        })
+    })
+}
