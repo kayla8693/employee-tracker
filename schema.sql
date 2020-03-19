@@ -3,6 +3,7 @@ DROP DATABASE IF EXISTS employees_db;
 CREATE DATABASE employees_db;
 
 USE employees_db;
+
 CREATE TABLE department (
     id INT AUTO_INCREMENT NOT NULL,
     name VARCHAR(30) NOT NULL,
@@ -22,7 +23,7 @@ CREATE TABLE employee (
     first_name VARCHAR(30) NOT NULL,
     last_name VARCHAR(30) NOT NULL,
     role_id INT NOT NULL REFERENCES role(id),
-    manager_id INT REFERENCES employee(id),
+    manager_id INT NULL REFERENCES employee(id),
     PRIMARY KEY(id)
 );
 
@@ -55,4 +56,4 @@ VALUES (1, "John", "Doe", 2, 2),
     (10, "Martha", "Jones", 8, 5);
 
 
-SELECT * FROM employees_db;
+SELECT * FROM employees_db.employee;

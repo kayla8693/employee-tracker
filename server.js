@@ -3,6 +3,7 @@ const mysql = require('mysql');
 const cTable = require('console.table');
 
 const mainQuery = 'SELECT e.id, e.first_name, e.last_name, role.title, department.name AS department, role.salary, CONCAT(m.first_name, " ", m.last_name) AS manager FROM employee e INNER JOIN role ON e.role_id = role.id  INNER JOIN department ON role.department_id = department.id LEFT JOIN employee m ON m.id = e.manager_id';
+const lineBreak = '\n \n \n \n \n \n \n';
 
 const TEXT_VIEW_EMPLOYEES = "View all employees";
 const TEXT_ADD_DEPARTMENT = "Add a department";
@@ -17,18 +18,8 @@ const TEXT_VIEW_EMPLOYEE_BY_MANAGER = "View employees by manager";
 const TEXT_DELETE_DEPARTMENT = "Delete a department";
 const TEXT_DELETE_ROLE = "Delete a role";
 const TEXT_DELETE_EMPLOYEE = "Delete an employee";
-
-
-
-
-// BONUS
-
-
-
-
 const TEXT_VIEW_DEPARTMENT_BUDGET = "View all department budgets";
 const EXIT = "Exit";
-
 
 const connection = mysql.createConnection({
     host: "localhost",
@@ -126,6 +117,8 @@ function viewAllEmployees() {
         if (err) throw err;
         console.log("\n")
         console.table(res);
+        console.log(lineBreak);
+
     });
     queryUser();
 };
@@ -148,6 +141,7 @@ function addDepartment() {
             if (err) throw err;
             console.log("\n");
             console.table(res);
+            console.log(lineBreak);
         });
         queryUser();
     });
@@ -194,6 +188,7 @@ function addRole() {
                 if (err) throw err;
                 console.log("\n");
                 console.table(res);
+                console.log(lineBreak);
             });
             queryUser();
         });
@@ -257,6 +252,7 @@ function addEmployee() {
                             if (err) throw err;
                             console.log('\n');
                             console.table(res);
+                            console.log(lineBreak);
                         });
                         queryUser();
                     });
@@ -271,6 +267,7 @@ function viewDepartments() {
         if (err) throw err;
         console.log('\n');
         console.table(res);
+        console.log(lineBreak);
     });
     queryUser();
 };
@@ -281,6 +278,7 @@ function viewRoles() {
         if (err) throw err;
         console.log("\n");
         console.table(res);
+        console.log(lineBreak);
     });
     queryUser();
 };
@@ -344,6 +342,7 @@ function updateEmployeeRole() {
                                 if (err) throw err;
                                 console.log('\n');
                                 console.table(res);
+                                console.log(lineBreak);
                             });
                             queryUser();
                         });
@@ -375,6 +374,7 @@ function viewByRole() {
                 if (err) throw err;
                 console.log('\n');
                 console.table(res);
+                console.log(lineBreak);
             });
             queryUser();
         });
@@ -422,6 +422,7 @@ function updateManager() {
                         if (err) throw err;
                         console.log('\n');
                         console.table(res);
+                        console.log(lineBreak);
                     });
                     queryUser();
                 });
@@ -452,6 +453,7 @@ function viewByManager() {
                 if (err) throw err;
                 console.log('\n');
                 console.table(res);
+                console.log(lineBreak);
             });
             queryUser();
         });
@@ -483,6 +485,7 @@ function deleteDepartment() {
                 if (err) throw err;
                 console.log('\n');
                 console.table(res);
+                console.log(lineBreak);
             });
             queryUser();
         });
@@ -514,6 +517,7 @@ function deleteRole() {
                 if (err) throw err;
                 console.log('\n');
                 console.table(res);
+                console.log(lineBreak);
             });
             queryUser();
         });
@@ -545,6 +549,7 @@ function deleteEmployee() {
                 if (err) throw err;
                 console.log('\n');
                 console.table(res);
+                console.log(lineBreak);
             });
             queryUser();
         });
@@ -553,10 +558,11 @@ function deleteEmployee() {
 
 function viewBudgets() {
     const query = "SELECT department.id, name, SUM(role.salary) total_dept_budget FROM department INNER JOIN role ON department.id = role.department_id INNER JOIN employee ON role.id = employee.role_id GROUP BY department.id";
-    connection.query(query, function(err, res) {
-        if(err) throw err;
+    connection.query(query, function (err, res) {
+        if (err) throw err;
         console.log('\n');
         console.table(res);
+        console.log(lineBreak);
     });
     queryUser();
 };
