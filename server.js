@@ -11,19 +11,21 @@ const TEXT_ADD_EMPLOYEE = "Add an employee";
 const TEXT_VIEW_DEPARTMENTS = "View all departments";
 const TEXT_VIEW_ROLES = "View all roles";
 const TEXT_UPDATE_EMPLOYEE_ROLE = "Update employee role";
-const TEXT_VIEW_EMPLOYEES_BY_ROLE = "View employees by role"
-
-
-
-// BONUS
+const TEXT_VIEW_EMPLOYEES_BY_ROLE = "View employees by role";
 const TEXT_UPDATE_EMPLOYEE_MANAGER = "Update employee manager";
 const TEXT_VIEW_EMPLOYEE_BY_MANAGER = "View employees by manager";
 
 
 
-const TEXT_DELETE_DEPARTMENT = "Delete department";
-const TEXT_DELETE_ROLE = "Delete role";
-const TEXT_DELETE_EMPLOYEE = "Delete employee";
+
+// BONUS
+
+
+
+
+const TEXT_DELETE_DEPARTMENT = "Delete a department";
+const TEXT_DELETE_ROLE = "Delete a role";
+const TEXT_DELETE_EMPLOYEE = "Delete an employee";
 const TEXT_VIEW_DEPARTMENT_BUDGET = "View department budget";
 const EXIT = "Exit";
 
@@ -59,6 +61,7 @@ function queryUser() {
             TEXT_VIEW_EMPLOYEES_BY_ROLE,
             TEXT_UPDATE_EMPLOYEE_MANAGER,
             TEXT_VIEW_EMPLOYEE_BY_MANAGER,
+            TEXT_DELETE_DEPARTMENT,
             EXIT
         ]
     }).then(function (answer) {
@@ -93,6 +96,9 @@ function queryUser() {
                 case TEXT_VIEW_EMPLOYEE_BY_MANAGER:
                     viewByManager();
                     break;
+                    case TEXT_DELETE_DEPARTMENT:
+                        deleteDepartment();
+                        break;
             case EXIT:
                 console.log("Goodbye");
                 connection.end();
@@ -438,6 +444,36 @@ function viewByManager() {
                 console.table(res);
             });
             queryUser();
-        })
-    })
-}
+        });
+    });
+};
+
+function deleteDepartment() {
+    connection.query("SELECT * FROM department", function(err, results) {
+        if(err) throw err;
+        inquirer.prompt({
+            name: 'department',
+            type: 'rawlist',
+            message: "What department would you like to delete?",
+            choices: function() {
+                choicesArray = [];
+                for (var i = 0; i < results.length; i++) {
+                    choicesArray.push(results[i].id + '. ' + results[i].name);
+                }
+                return choicesArray;
+            }
+        }).then(function(answer) {
+            const department = answer.department;
+            const deptId = department.match(/(\d+)/);
+            const query = "DELETE FROM department WHERE id = ?";
+            connection.query(query, deptId, function(err, res) {
+                if (err) throw err;
+            });
+            connection.query("SELECT * FROM department", function(err, res) {
+                if (err) throw err;
+                console.log('\n');
+                console.table(res);
+            });
+        });
+    });
+};

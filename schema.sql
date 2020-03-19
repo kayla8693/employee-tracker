@@ -56,5 +56,3 @@ VALUES (1, "John", "Doe", 2, 2),
 
 
 SELECT * FROM employees_db;
-
-
