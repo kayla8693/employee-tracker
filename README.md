@@ -18,11 +18,19 @@ This application is a **C**ontent **M**anagement **S**ystem which allows a user 
   * View the total utilized budget of all departments -- ie the combined salaries of all employees in that department
 
 ## Table of Contents
-1. [Installation](#installation)
-2. [Usage](#usage)
-3. [License](#license)
-4. [Contributing](#contributing)
-5. [Questions](#questions)
+1. [Technologies](#technologies)
+2. [Installation](#installation)
+3. [Usage](#usage)
+4. [License](#license)
+5. [Contributing](#contributing)
+6. [Questions](#questions)
+
+## Technologies
+<p id='technologies'></p>
+
+- Node.js
+- Inquirer.js
+- MySQL
 
 ## Installation
 <p id='installation'></p>
