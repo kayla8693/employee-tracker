@@ -110,7 +110,6 @@ function queryUser() {
     });
 };
 
-
 function viewAllEmployees() {
 
     connection.query(mainQuery, function (err, res) {
@@ -178,7 +177,6 @@ function addRole() {
             const { role, salary, department } = answer;
             const deptId = department.match(/(\d+)/);
 
-            // const deptId = parseInt(department.charAt(0));
             const query = "INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)";
             connection.query(query, [role, salary, deptId[0]], function (err, res) {
                 if (err) throw err;
@@ -212,7 +210,6 @@ function addEmployee() {
         connection.query("SELECT * FROM role", function (err, results) {
             if (err) throw err;
             inquirer.prompt({
-
                 name: 'role',
                 type: 'rawlist',
                 message: "What is this employee's role?",
@@ -223,14 +220,12 @@ function addEmployee() {
                     }
                     return choicesArray;
                 }
-
             }).then(function (answer) {
                 const role = answer.role;
                 const roleId = role.match(/(\d+)/);
                 connection.query("SELECT * FROM employee", function (err, results) {
                     if (err) throw err;
                     inquirer.prompt({
-
                         name: 'manager',
                         type: 'rawlist',
                         message: "Who is the manager of this employee?",
@@ -367,7 +362,6 @@ function viewByRole() {
                 }
                 return choicesArray;
             }
-
         }).then(function (answer) {
             const query = "SELECT employee.id, first_name, last_name FROM employee INNER JOIN role ON employee.role_id = role.id WHERE role.title = ?";
             connection.query(query, answer.role, function (err, res) {
